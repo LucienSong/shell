@@ -1,0 +1,30 @@
+System.register("chunks:///_virtual/rootManager.ts",["./_rollupPluginModLoBabelHelpers.js","cc"],(function(o){"use strict";var t,r,e,n,c;return{setters:[function(o){t=o.inheritsLoose},function(o){r=o.cclegacy,e=o._decorator,n=o.director,c=o.Component}],execute:function(){var a;r._RF.push({},"4a792S952hMXK4HTvrNEAMT","rootManager",void 0);var s=e.ccclass;e.property,o("rootManager",s("rootManager")(a=function(o){function r(){return o.apply(this,arguments)||this}return t(r,o),r.prototype.start=function(){console.log("Root scene..."),n.loadScene("main")},r}(c))||a);r._RF.pop()}}}));
+
+System.register("chunks:///_virtual/LanguageData.ts",["cc"],(function(e){"use strict";var n,t;return{setters:[function(e){n=e.cclegacy,t=e.director}],execute:function(){e({init:r,t:function(e){var n=window;if(!n.languages)return e;for(var t=e.split("."),r=n.languages[a],u=0;u<t.length;u++)if(!(r=r[t[u]]))return"";return r||""},updateSceneRenderers:u}),n._RF.push({},"b3f01X4Ik5LEbIPKXZr3JWD","LanguageData",void 0);var a=e("_language","zh");e("ready",!1);function r(n){e("ready",!0),a=e("_language",n)}function u(){for(var e=t.getScene().children,n=[],a=0;a<e.length;++a){var r=e[a].getComponentsInChildren("LocalizedLabel");Array.prototype.push.apply(n,r)}for(var u=0;u<n.length;++u){var i=n[u];i.node.active&&i.updateLabel()}for(var o=[],g=0;g<e.length;++g){var c=e[g].getComponentsInChildren("LocalizedSprite");Array.prototype.push.apply(o,c)}for(var l=0;l<o.length;++l){var p=o[l];p.node.active&&p.updateSprite()}}window._languageData={get language(){return a},init:function(e){r(e)},updateSceneRenderers:function(){u()}},n._RF.pop()}}}));
+
+System.register("chunks:///_virtual/LocalizedSprite.ts",["./_rollupPluginModLoBabelHelpers.js","cc","./LanguageData.ts"],(function(e){"use strict";var t,i,r,n,a,o,p,s,c,u,l,f;return{setters:[function(e){t=e.applyDecoratedDescriptor,i=e.initializerDefineProperty,r=e.inheritsLoose,n=e.defineProperty,a=e.assertThisInitialized},function(e){o=e.cclegacy,p=e._decorator,s=e.SpriteFrame,c=e.Component},function(e){u=e.ready,l=e.init,f=e._language}],execute:function(){var h,d,g,y,z,L,m,b,v,S,F;o._RF.push({},"c05c25C4xNAupWYMB93tIzp","LocalizedSprite",void 0);var _=p.ccclass,w=p.property,D=p.executeInEditMode,I=(h=_("LocalizedSpriteItem"),d=w({type:s}),h((z=t((y=function(){i(this,"language",z,this),i(this,"spriteFrame",L,this)}).prototype,"language",[w],{configurable:!0,enumerable:!0,writable:!0,initializer:function(){return"zh"}}),L=t(y.prototype,"spriteFrame",[d],{configurable:!0,enumerable:!0,writable:!0,initializer:function(){return null}}),g=y))||g);e("LocalizedSprite",(m=_("LocalizedSprite"),b=w({type:I}),m(v=D((F=t((S=function(e){function t(){for(var t,r=arguments.length,o=new Array(r),p=0;p<r;p++)o[p]=arguments[p];return t=e.call.apply(e,[this].concat(o))||this,n(a(t),"sprite",null),i(a(t),"spriteList",F,a(t)),t}r(t,e);var o=t.prototype;return o.onLoad=function(){u||l("zh"),this.fetchRender()},o.fetchRender=function(){var e=this.getComponent("cc.Sprite");if(e)return this.sprite=e,void this.updateSprite()},o.updateSprite=function(){for(var e=0;e<this.spriteList.length;e++){var t=this.spriteList[e];if(t.language===f){this.sprite.spriteFrame=t.spriteFrame;break}}},t}(c)).prototype,"spriteList",[b],{configurable:!0,enumerable:!0,writable:!0,initializer:function(){return[]}}),v=S))||v)||v));o._RF.pop()}}}));
+
+System.register("chunks:///_virtual/LocalizedLabel.ts",["./_rollupPluginModLoBabelHelpers.js","cc","./LanguageData.ts"],(function(e){"use strict";var t,i,r,n,o,a,l,c,s,u,p,y;return{setters:[function(e){t=e.applyDecoratedDescriptor,i=e.inheritsLoose,r=e.defineProperty,n=e.assertThisInitialized,o=e.initializerDefineProperty,a=e.createClass},function(e){l=e.cclegacy,c=e._decorator,s=e.Component},function(e){u=e.ready,p=e.init,y=e.t}],execute:function(){var d,f,b,h,L,g;l._RF.push({},"edf98QH2D1AUoCrtQlbxFrU","LocalizedLabel",void 0);var v=c.ccclass,k=c.property,z=c.executeInEditMode;e("LocalizedLabel",(d=v("LocalizedLabel"),f=k({visible:!1}),b=k({displayName:"Key",visible:!0}),d(h=z((g=t((L=function(e){function t(){for(var t,i=arguments.length,a=new Array(i),l=0;l<i;l++)a[l]=arguments[l];return t=e.call.apply(e,[this].concat(a))||this,r(n(t),"label",null),o(n(t),"key",g,n(t)),t}i(t,e);var l=t.prototype;return l.onLoad=function(){u||p("zh"),this.fetchRender()},l.fetchRender=function(){var e=this.getComponent("cc.Label");if(e)return this.label=e,void this.updateLabel()},l.updateLabel=function(){this.label&&(this.label.string=y(this.key))},a(t,[{key:"_key",get:function(){return this.key},set:function(e){this.updateLabel(),this.key=e}}]),t}(s)).prototype,"key",[f],{configurable:!0,enumerable:!0,writable:!0,initializer:function(){return""}}),t(L.prototype,"_key",[b],Object.getOwnPropertyDescriptor(L.prototype,"_key"),L.prototype),h=L))||h)||h));l._RF.pop()}}}));
+
+System.register("chunks:///_virtual/mainManager.ts",["./_rollupPluginModLoBabelHelpers.js","cc"],(function(n){"use strict";var t,e,r,o;return{setters:[function(n){t=n.inheritsLoose},function(n){e=n.cclegacy,r=n._decorator,o=n.Component}],execute:function(){var a;e._RF.push({},"f055ew8WN1Ot6E5FtQ6lHNx","mainManager",void 0);var c=r.ccclass;r.property,n("mainManager",c("mainManager")(a=function(n){function e(){return n.apply(this,arguments)||this}return t(e,n),e.prototype.start=function(){console.log("Main scene...")},e}(o))||a);e._RF.pop()}}}));
+
+System.register("chunks:///_virtual/main",["./rootManager.ts","./LanguageData.ts","./LocalizedSprite.ts","./LocalizedLabel.ts","./mainManager.ts"],(function(){"use strict";return{setters:[null,null,null,null,null],execute:function(){}}}));
+
+(function(r) {
+  r('virtual:///prerequisite-imports/main', 'chunks:///_virtual/main'); 
+})(function(mid, cid) {
+    System.register(mid, [cid], function (_export, _context) {
+    return {
+        setters: [function(_m) {
+            var _exportObj = {};
+
+            for (var _key in _m) {
+              if (_key !== "default" && _key !== "__esModule") _exportObj[_key] = _m[_key];
+            }
+      
+            _export(_exportObj);
+        }],
+        execute: function () { }
+    };
+    });
+});
