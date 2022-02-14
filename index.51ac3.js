@@ -1,4 +1,4 @@
-System.register(["./application.5ecc2.js"], function (_export, _context) {
+System.register(["./application.c6633.js"], function (_export, _context) {
   "use strict";
 
   var createApplication, canvas, $p, bcr;
@@ -67,8 +67,8 @@ System.register(["./application.5ecc2.js"], function (_export, _context) {
   }
 
   return {
-    setters: [function (_application5ecc2Js) {
-      createApplication = _application5ecc2Js.createApplication;
+    setters: [function (_applicationC6633Js) {
+      createApplication = _applicationC6633Js.createApplication;
     }],
     execute: function () {
       canvas = document.getElementById('GameCanvas');
