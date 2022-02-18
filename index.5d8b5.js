@@ -1,4 +1,4 @@
-System.register(["./application.fc5ef.js"], function (_export, _context) {
+System.register(["./application.3d1dd.js"], function (_export, _context) {
   "use strict";
 
   var createApplication, canvas, $p, bcr;
@@ -67,8 +67,8 @@ System.register(["./application.fc5ef.js"], function (_export, _context) {
   }
 
   return {
-    setters: [function (_applicationFc5efJs) {
-      createApplication = _applicationFc5efJs.createApplication;
+    setters: [function (_application3d1ddJs) {
+      createApplication = _application3d1ddJs.createApplication;
     }],
     execute: function () {
       canvas = document.getElementById('GameCanvas');
