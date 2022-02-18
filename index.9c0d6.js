@@ -1,4 +1,4 @@
-System.register(["./application.af8e2.js"], function (_export, _context) {
+System.register(["./application.dd469.js"], function (_export, _context) {
   "use strict";
 
   var createApplication, canvas, $p, bcr;
@@ -67,8 +67,8 @@ System.register(["./application.af8e2.js"], function (_export, _context) {
   }
 
   return {
-    setters: [function (_applicationAf8e2Js) {
-      createApplication = _applicationAf8e2Js.createApplication;
+    setters: [function (_applicationDd469Js) {
+      createApplication = _applicationDd469Js.createApplication;
     }],
     execute: function () {
       canvas = document.getElementById('GameCanvas');
