@@ -8,14 +8,29 @@ System.register([], function (_export, _context) {
         fetchWasm = _ref.fetchWasm;
     // NOTE: before here we shall not import any module!
     var promise = Promise.resolve();
+    promise = promise.then(function () {
+      return topLevelImport('wait-for-ammo-instantiation');
+    }).then(function (_ref2) {
+      var waitForAmmoInstantiation = _ref2["default"];
+      var isWasm = waitForAmmoInstantiation.isWasm,
+          wasmBinaryURL = waitForAmmoInstantiation.wasmBinaryURL;
+
+      if (!isWasm) {
+        return waitForAmmoInstantiation();
+      } else {
+        return Promise.resolve(fetchWasm(wasmBinaryURL)).then(function (wasmBinary) {
+          return waitForAmmoInstantiation(wasmBinary);
+        });
+      }
+    });
     return promise.then(function () {
       return _defineProperty({
         start: start
       }, 'import', topLevelImport);
     });
 
-    function start(_ref3) {
-      var findCanvas = _ref3.findCanvas;
+    function start(_ref4) {
+      var findCanvas = _ref4.findCanvas;
       var settings;
       var cc;
       return Promise.resolve().then(function () {
@@ -96,7 +111,8 @@ System.register([], function (_export, _context) {
     }
 
     function loadSettingsJson(cc) {
-      var settings = 'src/settings.1406d.json';
+      var server = '';
+      var settings = 'src/settings.179bf.json';
       return new Promise(function (resolve, reject) {
         if (typeof fsUtils !== 'undefined' && !settings.startsWith('http')) {
           var result = fsUtils.readJsonSync(settings);
@@ -105,6 +121,7 @@ System.register([], function (_export, _context) {
             reject(result);
           } else {
             window._CCSettings = result;
+            window._CCSettings.server = server;
             resolve();
           }
         } else {
@@ -115,6 +132,7 @@ System.register([], function (_export, _context) {
 
             xhr.onload = function () {
               window._CCSettings = JSON.parse(xhr.response);
+              window._CCSettings.server = server;
               resolve();
             };
 
@@ -145,24 +163,22 @@ System.register([], function (_export, _context) {
     }
 
     var gameOptions = getGameOptions(cc, settings, findCanvas);
-    var success = cc.game.init(gameOptions);
-
-    try {
-      if (settings.customLayers) {
-        settings.customLayers.forEach(function (layer) {
-          cc.Layers.addLayer(layer.name, layer.bit);
-        });
-      }
-    } catch (error) {
-      console.warn(error);
-    }
-
-    return success ? Promise.resolve(success) : Promise.reject();
+    return Promise.resolve(cc.game.init(gameOptions));
   }
 
   function onGameStarted(cc, settings) {
     window._CCSettings = undefined;
+    cc.view.enableRetina(true);
     cc.view.resizeWithBrowserSize(true);
+
+    if (cc.sys.isMobile) {
+      if (settings.orientation === 'landscape') {
+        cc.view.setOrientation(cc.macro.ORIENTATION_LANDSCAPE);
+      } else if (settings.orientation === 'portrait') {
+        cc.view.setOrientation(cc.macro.ORIENTATION_PORTRAIT);
+      }
+    }
+
     var launchScene = settings.launchScene; // load scene
 
     cc.director.loadScene(launchScene, null, function () {
@@ -189,9 +205,7 @@ System.register([], function (_export, _context) {
       adapter: findCanvas('GameCanvas'),
       assetOptions: assetOptions,
       customJointTextureLayouts: settings.customJointTextureLayouts || [],
-      physics: settings.physics,
-      orientation: settings.orientation,
-      exactFitScreen: settings.exactFitScreen
+      physics: settings.physics
     };
     return options;
   }
