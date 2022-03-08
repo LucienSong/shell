@@ -1,4 +1,4 @@
-System.register(["./application.dd992.js"], function (_export, _context) {
+System.register(["./application.43a9f.js"], function (_export, _context) {
   "use strict";
 
   var createApplication, canvas, $p, bcr;
@@ -39,18 +39,36 @@ System.register(["./application.dd992.js"], function (_export, _context) {
   }
 
   function fetchWasm(url) {
-    return url;
+    return fetch(url).then(function (response) {
+      return response.arrayBuffer();
+    });
   }
 
   function findCanvas() {
-    var frame = document.querySelector('#GameDiv');
-    var container = document.querySelector('#Cocos3dGameContainer');
-    var canvas = document.querySelector('#GameCanvas');
+    // Use canvas in outer context
+    if (!canvas || canvas.tagName !== 'CANVAS') {
+      console.error("unknown canvas id:", el);
+    }
+
+    var width = canvas.width;
+    var height = canvas.height;
+    var container = document.createElement('div');
+
+    if (canvas && canvas.parentNode) {
+      canvas.parentNode.insertBefore(container, canvas);
+    }
+
+    container.setAttribute('id', 'Cocos3dGameContainer');
+    container.appendChild(canvas);
+    var frame = container.parentNode === document.body ? document.documentElement : container.parentNode;
+    addClass(canvas, 'gameCanvas');
+    canvas.setAttribute('width', width || '480');
+    canvas.setAttribute('height', height || '320');
     canvas.setAttribute('tabindex', '99');
     return {
       frame: frame,
-      container: container,
-      canvas: canvas
+      canvas: canvas,
+      container: container
     };
   }
 
@@ -67,8 +85,8 @@ System.register(["./application.dd992.js"], function (_export, _context) {
   }
 
   return {
-    setters: [function (_applicationDd992Js) {
-      createApplication = _applicationDd992Js.createApplication;
+    setters: [function (_application43a9fJs) {
+      createApplication = _application43a9fJs.createApplication;
     }],
     execute: function () {
       canvas = document.getElementById('GameCanvas');
