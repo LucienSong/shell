@@ -1,0 +1,838 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+library LibThunderRNG {
+    function rand() internal returns (uint256) {
+        uint256[1] memory m;
+        assembly {
+            if iszero(
+                call(
+                    not(0),
+                    0x8cC9C2e145d3AA946502964B1B69CE3cD066A9C7,
+                    0,
+                    0,
+                    0x0,
+                    m,
+                    0x20
+                )
+            ) {
+                revert(0, 0)
+            }
+        }
+        return m[0];
+    }
+}
+
+library SafeMath {
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+
+        require(c >= a, "SafeMath: addition overflow");
+
+        return c;
+    }
+
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a - b;
+
+        require(c <= a, "SafeMath: subtraction overflow");
+
+        return c;
+    }
+
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a == 0 || b == 0) return 0;
+
+        uint256 c = a * b;
+
+        require(c / a == b, "SafeMath: multiplication overflow");
+
+        return c;
+    }
+
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b > 0, "SafeMath: division by zero");
+        uint256 c = a / b;
+        return c;
+    }
+}
+
+interface IMEMBER {
+    struct User {
+        string name;
+        uint256 id;
+        uint256 referrer;
+        uint256 invitees;
+        uint256 level;
+        uint256 points;
+        uint256 totalPoints;
+    }
+
+    function userAddress(uint256 _id) external view returns (address);
+
+    function userReferrer(address _user) external view returns (uint256);
+
+    function idExist(uint256 _id) external view returns (bool);
+
+    function userRegistered(address _user) external view returns (bool);
+
+    function userId(address _user) external view returns (uint256);
+
+    function addPoints(
+        uint256 points,
+        address account
+    ) external returns (uint256);
+
+    function register(
+        address account,
+        uint256 referrerId
+    ) external returns (uint256 id);
+
+    function bonus(
+        address referrer,
+        address game,
+        address invitee,
+        address token,
+        uint256 amount
+    ) external;
+}
+
+interface IBASE {
+    // Structs
+    struct Player {
+        uint256 inviter;
+        uint256 invited;
+        uint8 level;
+        bool blocked;
+    }
+
+    struct Partner {
+        uint256 id;
+        uint8 source;
+        // Partner type source
+        // 0: unknown
+        // 1: invited
+        // 2: downline invited overflows
+        // 3: jackpot
+        // 4: downline jackpot overflows
+    }
+
+    struct Game {
+        uint256 sn;
+        uint256 upline;
+        uint256 cycle;
+        uint256 refresh;
+        uint256 missed;
+        uint256 bonus;
+        uint256 lucky;
+        Partner[] partners;
+    }
+
+    // Views
+    function name() external view returns (string memory);
+
+    function totalPlayerCount(uint8 level) external view returns (uint256);
+
+    function totalPlayerCounts(
+        uint8 toLevel
+    ) external view returns (uint256[] memory);
+
+    function player(uint256 id) external view returns (Player memory);
+
+    function playerInviter(uint256 id) external view returns (uint256);
+
+    function playerInvited(uint256 id) external view returns (uint256);
+
+    function playerLevel(uint256 id) external view returns (uint8);
+
+    function playerBlocked(uint256 id) external view returns (bool);
+
+    function playerSn(uint8 level, uint256 id) external view returns (uint256);
+
+    function playerId(uint8 level, uint256 sn) external view returns (uint256);
+
+    function playerGame(
+        uint8 level,
+        uint256 id
+    ) external view returns (Game memory);
+
+    function playerGames(
+        uint256 id,
+        uint8 from,
+        uint8 to
+    ) external view returns (Game[] memory);
+
+    function playerUpline(
+        uint8 level,
+        uint256 id
+    ) external view returns (uint256);
+
+    function playerCycles(
+        uint8 level,
+        uint256 id
+    ) external view returns (uint256);
+
+    function playerRefreshed(
+        uint8 level,
+        uint256 id
+    ) external view returns (uint256);
+
+    function playerMissed(
+        uint8 level,
+        uint256 id
+    ) external view returns (uint256);
+
+    function playerBonus(
+        uint8 level,
+        uint256 id
+    ) external view returns (uint256);
+
+    function playerLucky(
+        uint8 level,
+        uint256 id
+    ) external view returns (uint256);
+
+    function playerPartners(
+        uint8 level,
+        uint256 id
+    ) external view returns (Partner[] memory);
+
+    // External functions
+    function setInviter(uint256 id, uint256 inviter) external returns (uint256);
+
+    function addInvited(uint256 id) external returns (uint256);
+
+    function setLevel(uint256 id, uint8 level) external returns (uint8);
+
+    function setBlocked(uint256 id, bool blocked) external returns (bool);
+
+    function newGame(uint8 level, uint256 id) external returns (uint256);
+
+    function newUpline(
+        uint8 level,
+        uint256 id,
+        uint256 upline
+    ) external returns (uint256);
+
+    function addCycle(uint8 level, uint256 id) external returns (uint256);
+
+    function addRefresh(uint8 level, uint256 id) external returns (uint256);
+
+    function addMissed(uint8 level, uint256 id) external returns (uint256);
+
+    function addBonus(uint8 level, uint256 id) external returns (uint256);
+
+    function addLucky(uint8 level, uint256 id) external returns (uint256);
+
+    function addPartner(
+        uint8 level,
+        uint256 id,
+        uint8 source,
+        uint256 partnerId
+    ) external returns (bool);
+
+    function clearPartner(uint8 level, uint256 id) external returns (uint256);
+}
+
+abstract contract Ownable is Context {
+    address private _owner;
+    uint256 private _certifieds;
+
+    mapping(address => bool) private _isCertified;
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+    event CertifiedAdded(address indexed added);
+    event CertifiedRemoved(address indexed removed);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor() {
+        _transferOwnership(_msgSender());
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Return True if address is Certified.
+     */
+    function isCertified(address who) public view returns (bool) {
+        return _isCertified[who];
+    }
+
+    /**
+     * @dev Return total number of Certified.
+     */
+    function certifieds() public view returns (uint256) {
+        return _certifieds;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the certified.
+     */
+    modifier onlyCertified() {
+        require(
+            _isCertified[_msgSender()] || owner() == _msgSender(),
+            "Ownable: caller is not certified"
+        );
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        _transferOwnership(address(0));
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+     */
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+
+    /**
+     * @dev Add a new account (`user`) as a certified.
+     * Can only be called by the current owner.
+     */
+    function addCertified(address user) public onlyOwner {
+        require(user != address(0), "Ownable: new user is the zero address");
+        require(!_isCertified[user], "Ownable: this address is certified");
+        emit CertifiedAdded(user);
+        _isCertified[user] = true;
+        _certifieds += 1;
+    }
+
+    /**
+     * @dev Remove a certified (`user`).
+     * Can only be called by the current owner.
+     */
+    function removeCertified(address user) public onlyOwner {
+        require(_isCertified[user], "Ownable: this address is not certified");
+        emit CertifiedRemoved(user);
+        _isCertified[user] = false;
+        _certifieds -= 1;
+    }
+}
+
+contract JackpotGame is Ownable, ReentrancyGuard {
+    using SafeMath for uint256;
+
+    // Game name
+    string internal _name = "Infinity Jackpot - Shell.org";
+    // Member contract
+    IMEMBER internal _member;
+    // Base contract
+    IBASE internal _base;
+    // Token contract
+    IERC20 internal _token;
+    // Max jackpot level
+    uint8 internal _maxLevel;
+    // Max jackpot size for partners
+    uint256 internal _maxSize;
+    // Decimals
+    uint256 internal _decimals;
+    // Points multiplier n/10000
+    uint256 internal _P;
+    // Upgrade costs by game level
+    uint256[] internal _fees;
+
+    // Events
+    event Upgraded(
+        address indexed wallet,
+        uint256 indexed id,
+        uint8 level,
+        uint256 timestamp
+    );
+
+    event NewCycle(
+        address indexed wallet,
+        uint256 indexed memberId,
+        uint256 partner,
+        uint256 cycle,
+        uint8 level,
+        uint256 timestamp
+    );
+
+    event BonusGot(
+        address indexed wallet,
+        uint256 indexed memberId,
+        uint256 partner,
+        uint8 level,
+        bool overflowed,
+        uint256 timestamp
+    );
+
+    event BonusMissed(
+        address indexed wallet,
+        uint256 indexed memberId,
+        uint256 partner,
+        uint8 level,
+        uint256 timestamp
+    );
+
+    event JackpotWon(
+        address indexed wallet,
+        uint256 indexed memberId,
+        uint256 partner,
+        uint8 level,
+        bool overflowed,
+        uint256 timestamp
+    );
+
+    event JackpotMissed(
+        address indexed wallet,
+        uint256 indexed memberId,
+        uint256 partner,
+        uint8 level,
+        uint256 timestamp
+    );
+
+    // Constructor
+    constructor(
+        address member,
+        address base,
+        address token,
+        uint256[] memory fees
+    ) {
+        _member = IMEMBER(member);
+        _base = IBASE(base);
+        _token = IERC20(token);
+        _maxLevel = 21;
+        _maxSize = 3;
+        _decimals = 18;
+        _P = 1000000;
+        _fees = fees;
+    }
+
+    // View functions
+    function name() external view returns (string memory) {
+        return _name;
+    }
+
+    function gameInfo()
+        external
+        view
+        returns (
+            uint8 maxLevel,
+            uint256 maxSize,
+            uint256 decimals,
+            uint256 P,
+            uint256[] memory fees
+        )
+    {
+        return (_maxLevel, _maxSize, _decimals, _P, _fees);
+    }
+
+    function player(
+        address wallet
+    ) external view returns (IBASE.Player memory) {
+        return _base.player(_member.userId(wallet));
+    }
+
+    function playerGame(
+        address wallet,
+        uint8 level
+    ) external view returns (IBASE.Game memory) {
+        return _base.playerGame(level, _member.userId(wallet));
+    }
+
+    function playerGames(
+        address wallet,
+        uint8 from,
+        uint8 to
+    ) external view returns (IBASE.Game[] memory) {
+        return _base.playerGames(_member.userId(wallet), from, to);
+    }
+
+    // Modifier
+    modifier notBlocked() {
+        require(
+            !_base.playerBlocked(_member.userId(_msgSender())),
+            "Blocked account"
+        );
+        _;
+    }
+
+    // External functions
+
+    /// Manage functions(onlyOwner)
+    function setMember(address member) external onlyOwner returns (bool) {
+        _member = IMEMBER(member);
+        return true;
+    }
+
+    function setBase(address base) external onlyOwner returns (bool) {
+        _base = IBASE(base);
+        return true;
+    }
+
+    function setToken(address token) external onlyOwner returns (bool) {
+        _token = IERC20(token);
+        return true;
+    }
+
+    function setFee(
+        uint8 level,
+        uint256 fee
+    ) external onlyOwner returns (bool) {
+        require(level > 0 && level <= _maxLevel, "Invalid jackpot level");
+        _fees[level] = fee;
+        return true;
+    }
+
+    function setMaxLvAndFees(
+        uint256[] memory fees
+    ) external onlyOwner returns (bool) {
+        require(fees[0] == 0, "Invalid fees, first level must be 0");
+        require(fees.length > 1, "Invalid jackpot level");
+        _maxLevel = uint8(fees.length) - 1;
+        _fees = fees;
+        return true;
+    }
+
+    function setMaxSize(uint256 maxSize) external onlyOwner returns (bool) {
+        _maxSize = maxSize;
+        return true;
+    }
+
+    function setDecimals(uint256 decimals) external onlyOwner returns (bool) {
+        _decimals = decimals;
+        return true;
+    }
+
+    function setPointMultiplier(uint256 P) external onlyOwner returns (bool) {
+        _P = P;
+        return true;
+    }
+
+    function clear(
+        address to,
+        address token
+    ) external onlyOwner returns (bool) {
+        // keep contract with no balance
+        if (token == address(0)) {
+            // Transfer ETH to address from contract
+            (bool success, ) = to.call{value: address(this).balance}("");
+            return success;
+        } else {
+            // Transfer token to address from contract
+            uint256 amount = IERC20(token).balanceOf(address(this));
+            return IERC20(token).transfer(to, amount);
+        }
+    }
+
+    /// User functions
+    // Upgrade to next level
+    // If user is not registered, register user and give points to inviter
+    function upgrade(uint256 inviter) external notBlocked returns (bool) {
+        if (!_member.idExist(inviter) || _base.playerBlocked(inviter))
+            inviter = 1;
+
+        uint256 id = _member.userId(_msgSender());
+        if (id == 0) {
+            id = _member.register(_msgSender(), inviter);
+            _givePoints(inviter, _fees[1]);
+        } else {
+            inviter = _member.userReferrer(_msgSender());
+        }
+
+        require(_base.playerLevel(id) < _maxLevel, "Max level reached");
+
+        uint8 level = _base.playerLevel(id) + 1;
+        if (level == 1) {
+            _base.setInviter(id, inviter);
+            _base.addInvited(inviter);
+        }
+        uint256 fee = _fees[level];
+        require(_transferFrom(_msgSender(), fee), "Failed to charge");
+
+        // Set player level
+        _base.setLevel(id, level);
+        // Add new game for player, return sn
+        _base.newGame(level, id);
+        emit Upgraded(_msgSender(), id, level, block.timestamp);
+
+        _dealUpline(level, id);
+        _dealLuckydog(level, id);
+
+        return true;
+    }
+
+    function refresh(uint8 level) external notBlocked returns (bool) {
+        uint256 id = _member.userId(_msgSender());
+        require(_base.playerLevel(id) == level, "Invalid level");
+        require(level < _maxLevel, "Max level reached");
+        require(_gameState(level, id) == 3, "Not frozen");
+
+        uint256 fee = _fees[level].div(2);
+        require(_transferFrom(_msgSender(), fee), "Failed to charge");
+
+        _base.clearPartner(level, id);
+        _base.addRefresh(level, id);
+        emit NewCycle(
+            _msgSender(),
+            id,
+            id,
+            _base.playerCycles(level, id),
+            level,
+            block.timestamp
+        );
+        _dealLuckydog(level, id);
+
+        return true;
+    }
+
+    // Internal functions
+    function _gameState(uint8 level, uint256 id) internal view returns (uint8) {
+        // States of game
+        // 0: inactive, 1: active, 2: full , 3: frozen
+
+        uint8 playerLevel = _base.playerLevel(id);
+        if (playerLevel < level) return 0;
+
+        uint256 total = _base.playerPartners(level, id).length;
+
+        if (total < _maxSize) return 1;
+
+        if (playerLevel == level && playerLevel < _maxLevel) {
+            return 3;
+        } else {
+            return 2;
+        }
+    }
+
+    function _getUpline(
+        uint8 level,
+        uint256 id
+    ) internal view returns (uint256, uint256 originUpline, uint8 originState) {
+        uint256 upline = _base.playerUpline(level, id);
+        if (upline == 0) upline = _base.playerInviter(id);
+        if (upline == 0) upline = 1;
+
+        uint8 gameState = _gameState(level, upline);
+        if (gameState != 1) {
+            originUpline = upline;
+            originState = gameState;
+            (upline, , ) = _getUpline(level, upline);
+        }
+
+        return (upline, originUpline, originState);
+    }
+
+    function _getLuckydog(
+        uint8 level,
+        uint256 id,
+        uint256 rng
+    )
+        internal
+        view
+        returns (uint256, uint256 originLuckydog, uint8 originState)
+    {
+        // uint256 rng = LibThunderRNG.rand();
+        uint256 total = _base.totalPlayerCount(level);
+        uint256 lucky = (rng % total) + 1;
+        uint256 luckyId = _base.playerId(level, lucky);
+        if (luckyId == id && id > 1) {
+            luckyId -= 1;
+        }
+
+        uint8 gameState = _gameState(level, luckyId);
+        if (gameState != 1) {
+            originLuckydog = luckyId;
+            originState = gameState;
+            // get luckydog's upline as new luckydog
+            (luckyId, , ) = _getUpline(level, luckyId);
+        }
+
+        return (luckyId, originLuckydog, originState);
+    }
+
+    function _dealUpline(uint8 level, uint256 id) internal {
+        // Get upline or origin upline
+        (uint256 upline, uint256 originUpline, uint8 originState) = _getUpline(
+            level,
+            id
+        );
+        // Add id to upline's partners
+        require(
+            _base.addPartner(level, upline, originUpline > 0 ? 2 : 1, id),
+            "Failed to add partner"
+        );
+
+        if (originUpline > 0 && originState != 1) {
+            _dealOrigin(level, originState, originUpline, id, false);
+        }
+
+        // give bonus to upline
+        uint256 bonus = _fees[level].div(2);
+        _give(upline, bonus);
+        _base.addBonus(level, upline);
+        emit BonusGot(
+            _member.userAddress(upline),
+            upline,
+            id,
+            level,
+            originUpline > 0,
+            block.timestamp
+        );
+    }
+
+    function _dealLuckydog(uint8 level, uint256 id) internal {
+        uint256 rng = LibThunderRNG.rand();
+        // Get luckydog or origin luckydog
+        (
+            uint256 luckydog,
+            uint256 originLuckydog,
+            uint8 originState
+        ) = _getLuckydog(level, id, rng);
+        // Add id to luckydog's partners
+        require(
+            _base.addPartner(level, luckydog, originLuckydog > 0 ? 4 : 3, id),
+            "Failed to add partner"
+        );
+
+        if (originLuckydog > 0 && originState != 1) {
+            _dealOrigin(level, originState, originLuckydog, id, true);
+        }
+
+        // give jackpot to luckydog
+        uint256 jackpot = _fees[level].div(2);
+        _give(luckydog, jackpot);
+        _base.addLucky(level, luckydog);
+        emit JackpotWon(
+            _member.userAddress(luckydog),
+            luckydog,
+            id,
+            level,
+            originLuckydog > 0,
+            block.timestamp
+        );
+    }
+
+    function _dealOrigin(
+        uint8 level,
+        uint8 state,
+        uint256 id,
+        uint256 partner,
+        bool isLucky
+    ) internal {
+        if (state == 2) {
+            // new cycle for origin
+            _base.clearPartner(level, id);
+            _base.addCycle(level, id);
+            emit NewCycle(
+                _member.userAddress(id),
+                id,
+                id,
+                _base.playerCycles(level, id),
+                level,
+                block.timestamp
+            );
+        } else {
+            // add missed jackpot for origin
+            _base.addMissed(level, id);
+            if (isLucky) {
+                emit JackpotMissed(
+                    _member.userAddress(id),
+                    id,
+                    partner,
+                    level,
+                    block.timestamp
+                );
+            } else {
+                emit BonusMissed(
+                    _member.userAddress(id),
+                    id,
+                    partner,
+                    level,
+                    block.timestamp
+                );
+            }
+        }
+    }
+
+    function _give(uint256 id, uint256 amount) internal {
+        address wallet = _member.userAddress(id);
+        require(
+            _transferTo(wallet, amount),
+            "Failed to transfer token to upline"
+        );
+    }
+
+    function _givePoints(uint256 id, uint256 amount) internal {
+        amount = amount.mul(_P).div(10000);
+        _member.addPoints(amount, _member.userAddress(id));
+    }
+
+    function _transfer(
+        address to,
+        address token,
+        uint256 amount
+    ) internal returns (bool) {
+        if (token == address(0)) {
+            // Transfer ETH to address from contract
+            (bool success, ) = to.call{value: amount}("");
+            return success;
+        } else {
+            // Transfer token to address from contract
+            return IERC20(token).transfer(to, amount);
+        }
+    }
+
+    function _transferTo(address to, uint256 amount) internal returns (bool) {
+        return _token.transfer(to, amount.mul(10 ** _decimals));
+    }
+
+    function _transferFrom(
+        address from,
+        uint256 amount
+    ) internal returns (bool) {
+        return
+            _token.transferFrom(
+                from,
+                address(this),
+                amount.mul(10 ** _decimals)
+            );
+    }
+}
